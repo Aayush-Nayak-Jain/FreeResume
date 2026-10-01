@@ -1,6 +1,7 @@
 """Resume Management Service with Version History and IDOR Isolation."""
 
 import uuid
+from collections.abc import Sequence
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -73,10 +74,10 @@ class ResumeService:
         """Creates a new master or tailored resume document."""
         # If marked as master, unset any prior master resumes for this user
         if req.is_master:
-            existing_masters = await db.scalars(
-                select(Resume).where(Resume.user_id == user_id, Resume.is_master.is_(True))
-            )
-            for old_master in existing_masters:
+            stmt = select(Resume).where(Resume.user_id == user_id, Resume.is_master.is_(True))
+            result = await db.execute(stmt)
+            old_masters: Sequence[Resume] = result.scalars().all()
+            for old_master in old_masters:
                 old_master.is_master = False
 
         resume = Resume(
@@ -118,12 +119,13 @@ class ResumeService:
     @staticmethod
     async def list_resumes(db: AsyncSession, user_id: uuid.UUID) -> list[ResumeListResponse]:
         """Lists resumes strictly belonging to authenticated user (zero-trust IDOR defense)."""
-        result = await db.scalars(
+        stmt = (
             select(Resume)
             .where(Resume.user_id == user_id)
             .order_by(Resume.is_master.desc(), Resume.updated_at.desc())
         )
-        resumes = result.all()
+        result = await db.execute(stmt)
+        resumes: Sequence[Resume] = result.scalars().all()
         responses = []
         for r in resumes:
             dto = ResumeListResponse.model_validate(r)

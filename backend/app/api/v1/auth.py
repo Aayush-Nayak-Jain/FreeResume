@@ -1,5 +1,7 @@
 """Authentication and Identity API Router (Module 1)."""
 
+from collections.abc import Sequence
+
 from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -89,6 +91,6 @@ async def list_users_admin(
     db: AsyncSession = Depends(get_db),
 ) -> list[UserResponse]:
     """Admin-only endpoint to inspect user accounts."""
-    result = await db.scalars(select(User).order_by(User.created_at.desc()))
-    users = result.all()
+    result = await db.execute(select(User).order_by(User.created_at.desc()))
+    users: Sequence[User] = result.scalars().all()
     return [UserResponse.model_validate(u) for u in users]

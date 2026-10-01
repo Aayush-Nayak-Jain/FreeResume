@@ -5,13 +5,14 @@ local Ollama is unstarted or Azure OpenAI rate limits occur (Section 8.1).
 """
 
 import time
-from enum import Enum
+from enum import StrEnum
+
 from app.core.logging import logger
 
 
-class CircuitState(str, Enum):
-    CLOSED = "CLOSED"      # Normal operation, calls allowed
-    OPEN = "OPEN"          # Tripped, calls fast-rejected with AIUnavailableException
+class CircuitState(StrEnum):
+    CLOSED = "CLOSED"  # Normal operation, calls allowed
+    OPEN = "OPEN"  # Tripped, calls fast-rejected with AIUnavailableException
     HALF_OPEN = "HALF_OPEN"  # Trial state, testing if service recovered
 
 
@@ -41,7 +42,9 @@ class CircuitBreaker:
 
         if self.state == CircuitState.OPEN:
             # Check if cooldown has elapsed
-            if self.last_failure_time and (now - self.last_failure_time >= self.recovery_timeout_seconds):
+            if self.last_failure_time and (
+                now - self.last_failure_time >= self.recovery_timeout_seconds
+            ):
                 logger.info(
                     "Circuit breaker for %s transitioning from OPEN to HALF_OPEN after %.1fs cooldown",
                     self.provider_name,
@@ -61,7 +64,9 @@ class CircuitBreaker:
     def record_success(self) -> None:
         """Records a successful LLM invocation and resets failure counters."""
         if self.state != CircuitState.CLOSED:
-            logger.info("Circuit breaker for %s recovered and reset to CLOSED state", self.provider_name)
+            logger.info(
+                "Circuit breaker for %s recovered and reset to CLOSED state", self.provider_name
+            )
         self.state = CircuitState.CLOSED
         self.consecutive_failures = 0
         self.last_failure_time = None

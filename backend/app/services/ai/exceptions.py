@@ -30,12 +30,20 @@ class AIUnavailableException(AIServiceException):
 class AIParsingException(AIServiceException):
     """Raised when LLM output cannot be parsed into the expected JSON schema."""
 
-    def __init__(self, message: str = "Failed to parse structured AI output into expected schema.", provider: str | None = None):
+    def __init__(
+        self,
+        message: str = "Failed to parse structured AI output into expected schema.",
+        provider: str | None = None,
+    ):
         super().__init__(message=message, provider=provider, status_code=502)
 
 
 class PromptInjectionWarning(AIServiceException):
     """Raised when an untrusted input contains severe prompt injection patterns."""
 
-    def __init__(self, message: str = "Input contains potentially adversarial instruction patterns.", provider: str | None = None):
+    def __init__(
+        self,
+        message: str = "Input contains potentially adversarial instruction patterns.",
+        provider: str | None = None,
+    ):
         super().__init__(message=message, provider=provider, status_code=400)

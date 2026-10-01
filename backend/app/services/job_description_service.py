@@ -1,7 +1,8 @@
 """Job Description Service managing DB persistence, user-scoped access, and analysis workflows."""
 
 import uuid
-from typing import Sequence
+from collections.abc import Sequence
+
 from fastapi import HTTPException, status
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -129,8 +130,9 @@ class JobDescriptionService:
             .offset(skip)
             .limit(limit)
         )
-        result = await db.scalars(stmt)
-        return result.all()
+        result = await db.execute(stmt)
+        items: Sequence[JobDescription] = result.scalars().all()
+        return items
 
     @classmethod
     async def update_job_description(
@@ -211,7 +213,9 @@ class JobDescriptionService:
             title=jd.title,
             company=jd.company,
             raw_text=jd.raw_text,
-            structured_requirements=CategorizedRequirements.model_validate(jd.structured_requirements),
+            structured_requirements=CategorizedRequirements.model_validate(
+                jd.structured_requirements
+            ),
             weights_config=WeightsConfig.model_validate(jd.weights_config),
             created_at=jd.created_at,
             updated_at=jd.updated_at,

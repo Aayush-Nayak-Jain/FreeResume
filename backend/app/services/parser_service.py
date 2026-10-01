@@ -9,6 +9,7 @@ Enforces:
 
 import time
 import uuid
+from collections.abc import Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -147,9 +148,9 @@ class ParserService:
         if is_master:
             from sqlalchemy import select
 
-            existing_masters = await db.scalars(
-                select(Resume).where(Resume.user_id == user_id, Resume.is_master.is_(True))
-            )
+            stmt = select(Resume).where(Resume.user_id == user_id, Resume.is_master.is_(True))
+            result = await db.execute(stmt)
+            existing_masters: Sequence[Resume] = result.scalars().all()
             for m in existing_masters:
                 m.is_master = False
 

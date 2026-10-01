@@ -71,6 +71,7 @@ dmypy.json
 
 # Node & Next.js artifacts
 node_modules/
+*.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -94,7 +95,8 @@ pgdata/
 redisdata/
 
 # Model & Embedding caches
-models/
+/models/
+!backend/app/models/
 .cache/
 huggingface/
 sentence_transformers/

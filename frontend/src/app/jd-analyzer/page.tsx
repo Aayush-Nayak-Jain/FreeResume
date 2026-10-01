@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Briefcase,
@@ -132,14 +132,7 @@ export default function JDAnalyzerPage() {
   const [savedJds, setSavedJds] = useState<JobDescriptionSummaryResponse[]>([]);
   const [isLoadingSaved, setIsLoadingSaved] = useState(false);
 
-  // Load Saved JDs for authenticated candidate
-  useEffect(() => {
-    if (token) {
-      loadSavedJds();
-    }
-  }, [token]);
-
-  const loadSavedJds = async () => {
+  const loadSavedJds = useCallback(async () => {
     if (!token) return;
     setIsLoadingSaved(true);
     const res = await listJobDescriptions(token);
@@ -147,7 +140,14 @@ export default function JDAnalyzerPage() {
       setSavedJds(res.data);
     }
     setIsLoadingSaved(false);
-  };
+  }, [token]);
+
+  // Load Saved JDs for authenticated candidate
+  useEffect(() => {
+    if (token) {
+      loadSavedJds();
+    }
+  }, [token, loadSavedJds]);
 
   const handleWeightChange = (key: keyof WeightsConfig, value: number) => {
     setWeights((prev) => ({

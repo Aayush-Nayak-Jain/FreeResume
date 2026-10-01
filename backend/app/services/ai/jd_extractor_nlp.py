@@ -6,6 +6,7 @@ experience limits, education levels, and domain expectations.
 
 import re
 from typing import Any
+
 from app.schemas.job_description import (
     CategorizedRequirements,
     EducationRequirement,
@@ -34,7 +35,6 @@ TAXONOMY_SKILLS: dict[str, dict[str, Any]] = {
     "css": {"canonical": "CSS3", "category": "technical", "weight": 0.7},
     "bash": {"canonical": "Bash/Shell", "category": "technical", "weight": 0.8},
     "scala": {"canonical": "Scala", "category": "technical", "weight": 0.9},
-
     # Frameworks & Libraries
     "fastapi": {"canonical": "FastAPI", "category": "technical", "weight": 1.0},
     "django": {"canonical": "Django", "category": "technical", "weight": 1.0},
@@ -54,7 +54,6 @@ TAXONOMY_SKILLS: dict[str, dict[str, Any]] = {
     "graphql": {"canonical": "GraphQL", "category": "technical", "weight": 0.9},
     "rest": {"canonical": "REST APIs", "category": "technical", "weight": 0.9},
     "restful": {"canonical": "RESTful APIs", "category": "technical", "weight": 0.9},
-
     # Databases & Storage
     "postgresql": {"canonical": "PostgreSQL", "category": "technical", "weight": 1.0},
     "postgres": {"canonical": "PostgreSQL", "category": "technical", "weight": 1.0},
@@ -66,7 +65,6 @@ TAXONOMY_SKILLS: dict[str, dict[str, Any]] = {
     "dynamodb": {"canonical": "DynamoDB", "category": "technical", "weight": 0.9},
     "pgvector": {"canonical": "pgvector", "category": "technical", "weight": 0.9},
     "cassandra": {"canonical": "Cassandra", "category": "technical", "weight": 0.9},
-
     # Cloud & DevOps & Tools
     "aws": {"canonical": "AWS", "category": "tool", "weight": 1.0},
     "azure": {"canonical": "Azure", "category": "tool", "weight": 1.0},
@@ -82,7 +80,6 @@ TAXONOMY_SKILLS: dict[str, dict[str, Any]] = {
     "ci/cd": {"canonical": "CI/CD", "category": "methodology", "weight": 0.9},
     "jenkins": {"canonical": "Jenkins", "category": "tool", "weight": 0.8},
     "linux": {"canonical": "Linux", "category": "technical", "weight": 0.8},
-
     # AI / ML / Data Science
     "machine learning": {"canonical": "Machine Learning", "category": "technical", "weight": 1.0},
     "deep learning": {"canonical": "Deep Learning", "category": "technical", "weight": 1.0},
@@ -91,11 +88,18 @@ TAXONOMY_SKILLS: dict[str, dict[str, Any]] = {
     "scikit-learn": {"canonical": "Scikit-Learn", "category": "technical", "weight": 0.9},
     "pandas": {"canonical": "Pandas", "category": "technical", "weight": 0.9},
     "numpy": {"canonical": "NumPy", "category": "technical", "weight": 0.8},
-    "nlp": {"canonical": "Natural Language Processing (NLP)", "category": "technical", "weight": 1.0},
+    "nlp": {
+        "canonical": "Natural Language Processing (NLP)",
+        "category": "technical",
+        "weight": 1.0,
+    },
     "llm": {"canonical": "LLMs", "category": "technical", "weight": 1.0},
-    "rag": {"canonical": "Retrieval-Augmented Generation (RAG)", "category": "technical", "weight": 1.0},
+    "rag": {
+        "canonical": "Retrieval-Augmented Generation (RAG)",
+        "category": "technical",
+        "weight": 1.0,
+    },
     "langchain": {"canonical": "LangChain", "category": "technical", "weight": 0.9},
-
     # Soft Skills & Behavioral
     "communication": {"canonical": "Strong Communication", "category": "soft", "weight": 0.8},
     "collaboration": {"canonical": "Team Collaboration", "category": "soft", "weight": 0.8},
@@ -104,7 +108,11 @@ TAXONOMY_SKILLS: dict[str, dict[str, Any]] = {
     "problem solving": {"canonical": "Problem Solving", "category": "soft", "weight": 0.8},
     "agile": {"canonical": "Agile / Scrum", "category": "methodology", "weight": 0.8},
     "scrum": {"canonical": "Scrum", "category": "methodology", "weight": 0.8},
-    "microservices": {"canonical": "Microservices Architecture", "category": "methodology", "weight": 1.0},
+    "microservices": {
+        "canonical": "Microservices Architecture",
+        "category": "methodology",
+        "weight": 1.0,
+    },
     "system design": {"canonical": "System Design", "category": "technical", "weight": 1.0},
 }
 
@@ -131,7 +139,9 @@ class NLPExtractor:
     """Performs deterministic NLP extraction and heuristic parsing on job descriptions."""
 
     @classmethod
-    def extract_seniority(cls, text: str, title: str | None = None) -> tuple[str, float | None, float | None]:
+    def extract_seniority(
+        cls, text: str, title: str | None = None
+    ) -> tuple[str, float | None, float | None]:
         """Extracts seniority level and experience range in years."""
         text_lower = text.lower()
         title_lower = (title or "").lower()
@@ -140,12 +150,17 @@ class NLPExtractor:
         max_years: float | None = None
 
         # 1. Experience regex: "3-5 years", "3 to 5 years", "4+ years", "minimum 3 years"
-        range_match = re.search(r"(\d+(?:\.\d+)?)\s*(?:-|to)\s*(\d+(?:\.\d+)?)\s*(?:\+)?\s*years?", text_lower)
+        range_match = re.search(
+            r"(\d+(?:\.\d+)?)\s*(?:-|to)\s*(\d+(?:\.\d+)?)\s*(?:\+)?\s*years?", text_lower
+        )
         if range_match:
             min_years = float(range_match.group(1))
             max_years = float(range_match.group(2))
         else:
-            single_match = re.search(r"(?:at least|minimum|min|over|\+)?\s*(\d+(?:\.\d+)?)\s*\+?\s*years?(?:\s+of)?\s+(?:experience|exp|hands-on)?", text_lower)
+            single_match = re.search(
+                r"(?:at least|minimum|min|over|\+)?\s*(\d+(?:\.\d+)?)\s*\+?\s*years?(?:\s+of)?\s+(?:experience|exp|hands-on)?",
+                text_lower,
+            )
             if single_match:
                 min_years = float(single_match.group(1))
 
@@ -155,7 +170,9 @@ class NLPExtractor:
 
         if re.search(r"\b(lead|staff|principal|architect)\b", title_combined):
             seniority = "Lead / Staff"
-        elif re.search(r"\b(director|vp|vice president|head of|chief|cto|executive)\b", title_combined):
+        elif re.search(
+            r"\b(director|vp|vice president|head of|chief|cto|executive)\b", title_combined
+        ):
             seniority = "Executive"
         elif re.search(r"\b(senior|sr\.?)\b", title_combined):
             seniority = "Senior"
@@ -167,11 +184,17 @@ class NLPExtractor:
             seniority = "Mid-Level"
         else:
             # 3. Analyze body text, ignoring phrases like "mentor junior", "train juniors"
-            filtered_body = re.sub(r"(?i)\b(mentor|train|lead|guide|coach|supervise)\s+(junior|entry[-\s]?level|interns?)\b", "", text_lower)
+            filtered_body = re.sub(
+                r"(?i)\b(mentor|train|lead|guide|coach|supervise)\s+(junior|entry[-\s]?level|interns?)\b",
+                "",
+                text_lower,
+            )
 
             if re.search(r"\b(lead|staff|principal|architect)\b", filtered_body):
                 seniority = "Lead / Staff"
-            elif re.search(r"\b(director|vp|vice president|head of|chief|executive)\b", filtered_body):
+            elif re.search(
+                r"\b(director|vp|vice president|head of|chief|executive)\b", filtered_body
+            ):
                 seniority = "Executive"
             elif re.search(r"\b(senior|sr\.?)\b", filtered_body):
                 seniority = "Senior"
@@ -190,7 +213,6 @@ class NLPExtractor:
 
         return seniority, min_years, max_years
 
-
     @classmethod
     def extract_education(cls, text: str) -> EducationRequirement:
         """Extracts degrees and fields of study from JD text."""
@@ -203,7 +225,9 @@ class NLPExtractor:
             degree_level = "PhD / Doctorate"
         elif re.search(r"\b(master'?s|m\.?s|mca|m\.?tech|mba)\b", text_lower):
             degree_level = "Master's"
-        elif re.search(r"\b(bachelor'?s|b\.?s|b\.?e|b\.?tech|bca|undergraduate|degree in)\b", text_lower):
+        elif re.search(
+            r"\b(bachelor'?s|b\.?s|b\.?e|b\.?tech|bca|undergraduate|degree in)\b", text_lower
+        ):
             degree_level = "Bachelor's"
         elif re.search(r"\b(diploma|high school|associate degree)\b", text_lower):
             degree_level = "High School / Diploma"
@@ -223,13 +247,17 @@ class NLPExtractor:
             fields.append("Related Technical Field")
 
         if degree_level != "Not Specified":
-            is_req = bool(re.search(r"\b(required|must have|mandatory|minimum qualification)\b", text_lower))
+            is_req = bool(
+                re.search(r"\b(required|must have|mandatory|minimum qualification)\b", text_lower)
+            )
 
         return EducationRequirement(
             degree_level=degree_level,  # type: ignore[arg-type]
             fields_of_study=fields,
             is_required=is_req,
-            details=[f"{degree_level} in {', '.join(fields)}"] if fields and degree_level != "Not Specified" else [],
+            details=[f"{degree_level} in {', '.join(fields)}"]
+            if fields and degree_level != "Not Specified"
+            else [],
         )
 
     @classmethod
@@ -240,7 +268,7 @@ class NLPExtractor:
         for key, val in DOMAIN_KEYWORDS.items():
             if re.search(rf"\b{re.escape(key)}\b", text_lower):
                 domains.add(val)
-        return sorted(list(domains))
+        return sorted(domains)
 
     @classmethod
     def extract_responsibilities(cls, text: str) -> list[str]:
@@ -270,7 +298,15 @@ class NLPExtractor:
                 continue
 
             if is_resp_section and any(
-                h in lower_line for h in ["requirements", "qualifications", "what you bring", "skills", "benefits", "about us"]
+                h in lower_line
+                for h in [
+                    "requirements",
+                    "qualifications",
+                    "what you bring",
+                    "skills",
+                    "benefits",
+                    "about us",
+                ]
             ):
                 is_resp_section = False
                 continue
@@ -280,7 +316,11 @@ class NLPExtractor:
                 cleaned = re.sub(r"^[\*\-\•\–\—\d\.\)\s]+", "", line_str).strip()
                 if len(cleaned) > 15:
                     responsibilities.append(cleaned)
-            elif re.match(r"^[\*\-\•\–\—]\s+(Develop|Build|Design|Create|Maintain|Lead|Collaborate|Implement|Architect|Optimize)", line_str, re.I):
+            elif re.match(
+                r"^[\*\-\•\–\—]\s+(Develop|Build|Design|Create|Maintain|Lead|Collaborate|Implement|Architect|Optimize)",
+                line_str,
+                re.I,
+            ):
                 cleaned = re.sub(r"^[\*\-\•\–\—\d\.\)\s]+", "", line_str).strip()
                 if len(cleaned) > 15:
                     responsibilities.append(cleaned)
@@ -305,9 +345,21 @@ class NLPExtractor:
 
         for line in lines:
             lower = line.strip().lower()
-            if any(h in lower for h in ["preferred", "nice to have", "bonus", "desirable", "good to have", "plus"]):
+            if any(
+                h in lower
+                for h in ["preferred", "nice to have", "bonus", "desirable", "good to have", "plus"]
+            ):
                 current_section = "preferred"
-            elif any(h in lower for h in ["required", "must have", "minimum qualifications", "requirements", "what we're looking for"]):
+            elif any(
+                h in lower
+                for h in [
+                    "required",
+                    "must have",
+                    "minimum qualifications",
+                    "requirements",
+                    "what we're looking for",
+                ]
+            ):
                 current_section = "required"
             elif any(h in lower for h in ["responsibilities", "about us", "benefits", "perks"]):
                 current_section = "general"
@@ -368,10 +420,41 @@ class NLPExtractor:
         """Extracts high-salience terms suitable for ATS indexing."""
         words = re.findall(r"\b[A-Za-z][A-Za-z0-9\.\+#\-]{2,}\b", text)
         stopwords = {
-            "the", "and", "for", "with", "that", "this", "from", "have", "will", "your",
-            "are", "you", "our", "team", "work", "job", "company", "role", "years", "experience",
-            "looking", "candidate", "ability", "skills", "knowledge", "working", "across",
-            "including", "about", "other", "such", "using", "must", "well", "plus",
+            "the",
+            "and",
+            "for",
+            "with",
+            "that",
+            "this",
+            "from",
+            "have",
+            "will",
+            "your",
+            "are",
+            "you",
+            "our",
+            "team",
+            "work",
+            "job",
+            "company",
+            "role",
+            "years",
+            "experience",
+            "looking",
+            "candidate",
+            "ability",
+            "skills",
+            "knowledge",
+            "working",
+            "across",
+            "including",
+            "about",
+            "other",
+            "such",
+            "using",
+            "must",
+            "well",
+            "plus",
         }
         freq: dict[str, int] = {}
         for w in words:
@@ -385,21 +468,29 @@ class NLPExtractor:
         return [k for k, _ in sorted_kw[:max_keywords]]
 
     @classmethod
-    def parse_job_description(cls, raw_text: str, title: str | None = None, company: str | None = None) -> CategorizedRequirements:
+    def parse_job_description(
+        cls, raw_text: str, title: str | None = None, company: str | None = None
+    ) -> CategorizedRequirements:
         """Transforms raw job description text into structured, categorized requirements."""
         seniority, min_yrs, max_yrs = cls.extract_seniority(raw_text, title=title)
 
         education = cls.extract_education(raw_text)
         domains = cls.extract_domains(raw_text)
         responsibilities = cls.extract_responsibilities(raw_text)
-        req_skills, pref_skills, detailed_skills, tools, soft_skills = cls.extract_skills_and_categories(raw_text)
+        req_skills, pref_skills, detailed_skills, tools, soft_skills = (
+            cls.extract_skills_and_categories(raw_text)
+        )
         keywords = cls.extract_ats_keywords(raw_text)
 
         # Infer job title if not provided
         derived_title = title.strip() if title and title.strip() else ""
         if not derived_title:
             first_line = raw_text.strip().splitlines()[0] if raw_text.strip() else ""
-            if len(first_line) < 60 and ("engineer" in first_line.lower() or "developer" in first_line.lower() or "manager" in first_line.lower()):
+            if len(first_line) < 60 and (
+                "engineer" in first_line.lower()
+                or "developer" in first_line.lower()
+                or "manager" in first_line.lower()
+            ):
                 derived_title = first_line.strip("# -:")
             else:
                 derived_title = f"{seniority if seniority != 'Not Specified' else ''} Software Professional".strip()

@@ -8,7 +8,6 @@ from app.services.ai.circuit_breaker import CircuitBreaker, CircuitState
 from app.services.ai.jd_extractor_nlp import NLPExtractor
 from app.services.ai.prompt_guard import PromptGuard
 
-
 SAMPLE_JD = """
 Senior Backend Engineer (Python / FastAPI)
 Company: CloudTech Solutions
@@ -41,7 +40,9 @@ Preferred Qualifications (Bonus):
 
 def test_nlp_job_description_extraction():
     """Deterministic NLP extractor correctly segments skills, requirements, and metadata."""
-    parsed = NLPExtractor.parse_job_description(SAMPLE_JD, title="Senior Backend Engineer", company="CloudTech Solutions")
+    parsed = NLPExtractor.parse_job_description(
+        SAMPLE_JD, title="Senior Backend Engineer", company="CloudTech Solutions"
+    )
 
     assert parsed.job_title == "Senior Backend Engineer"
     assert parsed.company == "CloudTech Solutions"
@@ -57,8 +58,12 @@ def test_nlp_job_description_extraction():
     assert "Docker" in parsed.required_skills or "Docker" in parsed.tools_and_technologies
 
     # Check bonus/preferred skills
-    assert "TypeScript" in parsed.preferred_skills or "TypeScript" in [s.name for s in parsed.skills_detailed]
-    assert "Machine Learning" in parsed.preferred_skills or "Machine Learning" in [s.name for s in parsed.skills_detailed]
+    assert "TypeScript" in parsed.preferred_skills or "TypeScript" in [
+        s.name for s in parsed.skills_detailed
+    ]
+    assert "Machine Learning" in parsed.preferred_skills or "Machine Learning" in [
+        s.name for s in parsed.skills_detailed
+    ]
 
     # Check responsibilities and keywords
     assert len(parsed.responsibilities) >= 3

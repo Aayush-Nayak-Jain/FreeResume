@@ -29,8 +29,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     # Auto-initialize database tables for local execution
     try:
-        from app.models.base import Base
         from app.db.session import engine
+        from app.models.base import Base
+
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         logger.info("Database tables verified/created successfully.")
@@ -40,7 +41,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
 
     logger.info("Shutting down %s", settings.app_name)
-
 
 
 app = FastAPI(

@@ -8,7 +8,7 @@ Delivers:
 """
 
 import time
-from typing import Any
+
 from app.core.config import settings
 from app.core.logging import logger
 from app.schemas.job_description import (
@@ -94,24 +94,32 @@ class JobDescriptionAnalyzer:
         # 2. Check for adversarial injection signatures
         injections = PromptGuard.detect_injection_attempts(sanitized_text)
         if injections:
-            logger.warning("Sanitizing input containing injection attempts: count=%d", len(injections))
+            logger.warning(
+                "Sanitizing input containing injection attempts: count=%d", len(injections)
+            )
 
         weights = custom_weights or WeightsConfig()
-        provider_used = settings.llm_provider
-        model_used = settings.ollama_model if settings.llm_provider == "ollama" else settings.azure_openai_deployment_name
+        provider_used: str = settings.llm_provider
+        model_used: str = (
+            settings.ollama_model
+            if settings.llm_provider == "ollama"
+            else settings.azure_openai_deployment_name
+        )
 
         structured_result: CategorizedRequirements
 
         if force_nlp_only:
             # Deterministic NLP extraction
-            structured_result = NLPExtractor.parse_job_description(sanitized_text, title=title, company=company)
+            structured_result = NLPExtractor.parse_job_description(
+                sanitized_text, title=title, company=company
+            )
             provider_used = "nlp_deterministic"
             model_used = "rule_based_v1"
         else:
             try:
                 # 3. Secure prompt boundary wrapping
                 wrapped_user_prompt = PromptGuard.wrap_in_secure_boundary(sanitized_text)
-                
+
                 # Context hints
                 hints = []
                 if title:
@@ -130,7 +138,9 @@ class JobDescriptionAnalyzer:
                 structured_result = CategorizedRequirements.model_validate(ai_dict)
 
                 # If model missed overriding title/company from explicit user input
-                if title and (not structured_result.job_title or structured_result.job_title == "Target Role"):
+                if title and (
+                    not structured_result.job_title or structured_result.job_title == "Target Role"
+                ):
                     structured_result.job_title = title.strip()
                 if company and not structured_result.company:
                     structured_result.company = company.strip()
@@ -141,7 +151,9 @@ class JobDescriptionAnalyzer:
                     str(exc),
                 )
                 # Fallback to high-fidelity NLP deterministic extraction
-                structured_result = NLPExtractor.parse_job_description(sanitized_text, title=title, company=company)
+                structured_result = NLPExtractor.parse_job_description(
+                    sanitized_text, title=title, company=company
+                )
                 provider_used = f"{settings.llm_provider}_fallback_nlp"
                 model_used = "nlp_heuristic_v1"
 

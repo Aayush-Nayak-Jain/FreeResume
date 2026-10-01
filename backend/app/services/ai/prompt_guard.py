@@ -4,6 +4,7 @@ Implements zero-trust isolation for user-supplied JD and resume documents (Secti
 """
 
 import re
+
 from app.core.logging import logger
 
 # Delimiters for strict context isolation
@@ -47,7 +48,9 @@ class PromptGuard:
 
         # Truncate to maximum allowed characters
         if len(sanitized) > max_chars:
-            logger.warning("Truncated oversized JD input text from %d to %d chars", len(sanitized), max_chars)
+            logger.warning(
+                "Truncated oversized JD input text from %d to %d chars", len(sanitized), max_chars
+            )
             sanitized = sanitized[:max_chars]
 
         return sanitized.strip()
@@ -61,7 +64,9 @@ class PromptGuard:
             if match:
                 detected.append(match.group(0))
         if detected:
-            logger.warning("Adversarial prompt injection pattern detected in untrusted input: %s", detected)
+            logger.warning(
+                "Adversarial prompt injection pattern detected in untrusted input: %s", detected
+            )
         return detected
 
     @classmethod

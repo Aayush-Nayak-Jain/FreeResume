@@ -49,19 +49,22 @@ jobs:
       - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-          pip install ruff mypy pytest pytest-asyncio pytest-cov
+          python -m pip install -r backend/requirements.txt
+          python -m pip install ruff mypy pytest pytest-asyncio pytest-cov
 
       - name: Run Ruff Linter & Formatter check
+        working-directory: ./backend
         run: |
-          ruff check backend/
-          ruff format --check backend/
+          ruff check .
+          ruff format --check .
 
       - name: Run Mypy Type Checker
+        working-directory: ./backend
         run: |
-          mypy backend/app backend/tests --ignore-missing-imports
+          mypy app tests --ignore-missing-imports
 
       - name: Run Pytest Test Suite
+        working-directory: ./backend
         env:
           APP_ENV: test
           SECRET_KEY: test-secret-key-for-ci-runs-only
@@ -69,7 +72,7 @@ jobs:
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
           LLM_PROVIDER: ollama
         run: |
-          pytest backend/tests -v --cov=backend/app --cov-report=term-missing
+          pytest tests -v --cov=app --cov-report=term-missing
 
   # ============================================================================
   # 3. Frontend Quality Gate (Next.js / TypeScript)

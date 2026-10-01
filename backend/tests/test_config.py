@@ -5,7 +5,7 @@ from app.core.config import Settings
 
 def test_default_settings():
     """Verify default settings instantiation and properties."""
-    s = Settings()
+    s = Settings(_env_file=None)
     assert s.app_name == "FreeResume"
     assert s.llm_provider in ("ollama", "azure_openai")
     assert isinstance(s.cors_origins_list, list)

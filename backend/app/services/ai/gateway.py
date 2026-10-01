@@ -11,7 +11,8 @@ import asyncio
 import json
 import re
 import time
-from typing import Any, Type, TypeVar
+from typing import Any, TypeVar
+
 import httpx
 from pydantic import BaseModel
 
@@ -76,7 +77,7 @@ class AIGateway:
                 )
             data = response.json()
             # Ollama /api/chat returns response in message.content
-            return data.get("message", {}).get("content", "")
+            return str(data.get("message", {}).get("content", "") or "")
 
     async def _call_azure_openai(self, system_prompt: str, user_prompt: str) -> str:
         """Sends inference request to deployed Azure OpenAI endpoint."""
@@ -115,20 +116,24 @@ class AIGateway:
             data = response.json()
             choices = data.get("choices", [])
             if not choices:
-                raise AIParsingException("Empty choices in Azure OpenAI response.", provider="azure_openai")
-            return choices[0].get("message", {}).get("content", "")
+                raise AIParsingException(
+                    "Empty choices in Azure OpenAI response.", provider="azure_openai"
+                )
+            return str(choices[0].get("message", {}).get("content", "") or "")
 
     async def generate_json(
         self,
         system_prompt: str,
         user_prompt: str,
-        schema_class: Type[T] | None = None,
+        schema_class: type[T] | None = None,
     ) -> dict[str, Any]:
         """
         Executes an AI structured JSON generation request through circuit breaker and retries.
         """
         if not self.circuit_breaker.allow_request():
-            logger.warning("AI Gateway call rejected: Circuit breaker is OPEN for %s", settings.llm_provider)
+            logger.warning(
+                "AI Gateway call rejected: Circuit breaker is OPEN for %s", settings.llm_provider
+            )
             raise AIUnavailableException(
                 message="AI evaluation is temporarily unavailable — please try again in a moment.",
                 provider=settings.llm_provider,
@@ -145,11 +150,13 @@ class AIGateway:
                 elif settings.llm_provider == "azure_openai":
                     raw_output = await self._call_azure_openai(system_prompt, user_prompt)
                 else:
-                    raise AIUnavailableException(f"Unsupported LLM provider: {settings.llm_provider}")
+                    raise AIUnavailableException(
+                        f"Unsupported LLM provider: {settings.llm_provider}"
+                    )
 
                 # Clean & parse JSON output
                 json_str = self._extract_json_substring(raw_output)
-                parsed_dict = json.loads(json_str)
+                parsed_dict: dict[str, Any] = json.loads(json_str)
 
                 # Optional Pydantic validation
                 if schema_class is not None:
@@ -168,7 +175,7 @@ class AIGateway:
                 )
                 return parsed_dict
 
-            except (httpx.RequestError, httpx.HTTPStatusError, TimeoutError, asyncio.TimeoutError) as exc:
+            except (httpx.RequestError, httpx.HTTPStatusError, TimeoutError) as exc:
                 last_exception = exc
                 logger.warning(
                     "AI Gateway attempt %d/%d failed: %s",

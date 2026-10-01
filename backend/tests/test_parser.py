@@ -64,7 +64,7 @@ ResumeIQ AI Platform | Python, FastAPI, Next.js
         else:
             y += 10
 
-    pdf_bytes = doc.tobytes()
+    pdf_bytes = bytes(doc.tobytes())
     doc.close()
     return pdf_bytes
 
@@ -117,7 +117,7 @@ def create_sample_multi_column_pdf() -> bytes:
         fontsize=9,
     )
 
-    pdf_bytes = doc.tobytes()
+    pdf_bytes = bytes(doc.tobytes())
     doc.close()
     return pdf_bytes
 

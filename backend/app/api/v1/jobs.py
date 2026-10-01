@@ -1,7 +1,7 @@
 """Job Description Analysis API Endpoints (Module 5)."""
 
 import uuid
-from typing import Sequence
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -152,9 +152,7 @@ async def delete_job_description(
     db: AsyncSession = Depends(get_db),
 ) -> Response:
     """Permanently deletes a target job description and associated evaluation links."""
-    await JobDescriptionService.delete_job_description(
-        db=db, user_id=current_user.id, jd_id=jd_id
-    )
+    await JobDescriptionService.delete_job_description(db=db, user_id=current_user.id, jd_id=jd_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
